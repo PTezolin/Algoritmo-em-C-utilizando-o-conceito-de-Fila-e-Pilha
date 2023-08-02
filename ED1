@@ -1,0 +1,518 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
+#include <ctype.h>
+
+// --- Definição da estrutura de um nó da fila ---------------------------------------------------------------------------------------
+typedef struct no_fila {
+    char genetica;
+    struct no_fila* proximo; 
+} noFila;
+
+// --- Definição da estrutura da fila ------------------------------------------------------------------------------------------------
+typedef struct fila {
+    noFila* inicio;
+    noFila* fim;
+} Fila;
+
+// --- Iniciar Fila -----------------------------------------------------------------------------------------------------------------
+void inicializarFila(struct fila* fila) {
+    fila -> inicio = NULL;
+    fila -> fim = NULL;
+}
+
+// --- Definir estrutura de um nó da Pilha ------------------------------------------------------------------------------------------- 
+typedef struct no_pilha {
+    char genetica;
+    struct no_pilha* proximo;
+} noPilha;
+
+// --- Definir estrutura da Pilha ----------------------------------------------------------------------------------------------------
+typedef struct pilha {
+    noPilha* topo;
+} Pilha;
+
+// --- Iniciar Pilha -----------------------------------------------------------------------------------------------------------------
+void inicializarPilha(Pilha* pilha) {
+    pilha->topo = NULL;
+}
+
+// --- Enfileirar Fila ---------------------------------------------------------------------------------------------------------------
+void enfileirarFila(char genetica, Fila* fila) {
+    noFila* ptr = (noFila*)malloc(sizeof(noFila));
+    if (ptr == NULL) {
+        printf("  *** Erro de alocação. ***\n");
+        return;
+    } else {
+        ptr -> genetica = genetica;
+        ptr -> proximo = NULL;
+        if (fila -> inicio == NULL) {
+            fila -> inicio = ptr;
+        } else {
+            fila -> fim -> proximo = ptr;
+        }
+        fila -> fim = ptr;
+    }
+}
+
+// --- Desenfileirar a Fila ----------------------------------------------------------------------------------------------------------
+char desenfileiraFila(Fila *fila){
+    noFila *ptr = fila -> inicio;
+    char genetica;
+    if(ptr != NULL){
+        fila -> inicio = ptr -> proximo;
+        ptr -> proximo = NULL;
+        genetica = ptr -> genetica;
+        free(ptr);
+        if(fila -> inicio == NULL){
+            fila -> fim = NULL;
+        }
+        return genetica;
+    } else{
+        printf("  *** A fila está vazia ***\n");
+        return '\0';
+    }
+}
+
+// --- Funçao Ler Sequencia de DNA -------------------------------------------------------------------------------------------
+void lerSequencia(Fila *fila) {
+    char sequencia[100];
+    printf("  Informe a sequência de nucleotídeos do tipo [A], [T], [C] ou [G]: ");
+    fflush(stdin);
+    fgets(sequencia, sizeof(sequencia), stdin);
+
+    for (int i = 0; sequencia[i] != '\0'; i++) {
+        if (sequencia[i] != '\n') {
+            char nucleotideo = toupper(sequencia[i]);
+            if (nucleotideo == 'A' || nucleotideo == 'T' || nucleotideo == 'C' || nucleotideo == 'G') {
+                enfileirarFila(nucleotideo, fila);
+            } else {
+                printf("\n  O nucleotídeo '%c' é inválido, e foi removido da sequencia.\n", nucleotideo);
+            } 
+        }
+    }
+
+    if (fila->inicio != NULL) {
+        printf("\n  *** A sequência de DNA foi lida e armazenada com sucesso! ***\n");
+    }
+
+    printf("\n  Pressione enter para voltar ao menu! ");
+    getchar();
+    system("cls");
+}
+
+// --- Função responsavel por mostrar a fila --------------------------------------------------------------------------------
+void imprimirFila(Fila *fila){
+    noFila *ptr = fila -> inicio;
+    if(ptr != NULL){
+        printf("  A sequencia de nucleotídeos na fila é: ");
+        while (ptr != NULL){
+            printf("%c ", ptr -> genetica);
+            ptr = ptr -> proximo;
+        }
+        printf("\n");
+    } else{
+        printf("  *** A fila está vazia, não há nenhum nucleotideo amarzenado nela ***\n");
+        return;
+    }
+}
+
+// --- Função para incluir Nucleotideo a uma fila já criada -----------------------------------------------------------------------
+void incluirNucleotideo(Fila* fila) {
+    char nucleotideos[100];
+    printf("  Informe a sequência de nucleotídeos do tipo [A], [T], [C] ou [G] a ser adicionada: ");
+    fflush(stdin);
+    fgets(nucleotideos, sizeof(nucleotideos), stdin);
+
+    int len = strlen(nucleotideos);
+    for (int i = 0; i < len; i++) {
+        if (nucleotideos[i] != '\n') {
+            char nucleotideo = toupper(nucleotideos[i]);
+            if (nucleotideo == 'A' || nucleotideo == 'T' || nucleotideo == 'C' || nucleotideo == 'G') {
+                enfileirarFila(nucleotideo, fila);
+            } 
+        }
+    }
+    printf("\n  *** A sequencia de nucleotídeo informada foi incluída na fila com sucesso! ***\n");
+}
+
+// --- Função para excluir primeiro da fila --------------------------------------------------------------------------------------
+void excluirPrimeiroNucleotideoFila(Fila* fila) {
+    if (fila -> inicio == NULL) {
+        printf("  *** A fila está vazia, não há nucleotídeos para excluir. ***\n");
+        return;
+    }
+
+    char nucleotideo = desenfileiraFila(fila);
+    printf("  *** O nucleotídeo '%c' foi excluído da fila com sucesso! ***\n", nucleotideo);
+}
+
+// --- Função para excluir toda a fila ------------------------------------------------------------------------------------------
+void excluirSequenciaLista(Fila* fila) {
+    if (fila -> inicio == NULL) {
+        printf("  *** A fila está vazia, não há nucleotídeos para excluir. ***\n");
+        return;
+    } else{
+        while (fila->inicio != NULL) {
+            char nucleotideo = desenfileiraFila(fila);
+        }
+        printf("  *** Os nucleotídeos foram excluídos da lista. ***\n");
+    }
+}
+
+// --- Empilhar Pilha -----------------------------------------------------------------------------------------------------------
+void empilharPilha(char genetica, Pilha* pilha) {
+    noPilha* ptr = (noPilha*)malloc(sizeof(noPilha));
+    if (ptr == NULL) {
+        printf("  *** Erro de alocação de nó ***");
+        return;
+    } else {
+        ptr->genetica = genetica;
+        ptr->proximo = pilha -> topo;
+        pilha->topo = ptr;
+    }
+}
+
+// --- Desenpilhar Pilha --------------------------------------------------------------------------------------------------------
+char desempilharPilha(Pilha* pilha) {
+    noPilha* ptr = pilha -> topo;
+    char genetica;
+    if (ptr == NULL) {
+        printf("  *** A pilha está vazia ***\n");
+        return '\0';
+    } else {
+        pilha -> topo = ptr -> proximo;
+        ptr -> proximo = NULL;
+        genetica = ptr -> genetica;
+        free(ptr);
+        return genetica;
+    }
+}
+
+// --- Função para converter sequencia para pilha ------------------------------------------------------------------------------
+void lerSequenciaPilha(Fila* fila, Pilha* pilha) {
+    if (fila -> inicio == NULL) {
+        printf("  *** A fila está vazia. Por favor, insira uma sequência de nucleotídeos na fila antes de converter. ***\n");
+        return;
+    } else {
+        inicializarPilha(pilha); // Inicializar a pilha
+
+        // Criar uma cópia da fila original
+        Fila filaCopia;
+        inicializarFila(&filaCopia);
+        noFila* ptr = fila -> inicio;
+        while (ptr != NULL) {
+            enfileirarFila(ptr -> genetica, &filaCopia);
+            ptr = ptr->proximo;
+        }
+
+        // Converter e empilhar os nucleotídeos da fila copiada
+        while (filaCopia.inicio != NULL) {
+            char nucleotideo = desenfileiraFila(&filaCopia);
+            char dna;
+
+            switch (nucleotideo) {
+                case 'A':
+                    dna = 'T';
+                    break;
+                case 'T':
+                    dna = 'A';
+                    break;
+                case 'C':
+                    dna = 'G';
+                    break;
+                case 'G':
+                    dna = 'C';
+                    break;
+                default:
+                    dna = nucleotideo;
+                    break;
+            }
+            empilharPilha(dna, pilha);
+        }
+        printf("  *** A sequência de nucleotídeos foi convertida e armazenada na pilha com sucesso! ***\n\n");
+        noPilha* ptrPilha = pilha -> topo;
+        printf("  A sequência de nucleotídeos na pilha é: ");
+        while (ptrPilha != NULL) {
+            printf("%c ", ptrPilha -> genetica);
+            ptrPilha = ptrPilha -> proximo;
+        }
+        printf("\n");
+    }
+}
+
+// --- Mostrar pilha ---------------------------------------------------------------------------------------------------------
+void imprimirPilha(Pilha* pilha) {
+    if (pilha -> topo == NULL) {
+        printf("  *** A pilha está vazia, não há nenhum nucleotideo amarzenado nela ***\n");
+        return;
+    }
+    noPilha* ptr = pilha -> topo;
+    printf("  A sequência de nucleotídeos na pilha é: ");
+    while (ptr != NULL) {
+        printf("%c ", ptr -> genetica);
+        ptr = ptr -> proximo;
+    }
+    printf("\n");
+}
+
+// --- Função para incluir novo nucleotideo na pilha -------------------------------------------------------------------------
+void incluirNucleotideoPilha(Pilha* pilha) {
+    char sequencia[100];
+    printf("  Informe a sequência de nucleotídeos do tipo [A], [T], [C] ou [G]: ");
+    fflush(stdin);
+    fgets(sequencia, sizeof(sequencia), stdin);
+
+    for (int i = 0; sequencia[i] != '\0'; i++) {
+        if (sequencia[i] != '\n') {
+            char nucleotideo = toupper(sequencia[i]);
+            if (nucleotideo == 'A' || nucleotideo == 'T' || nucleotideo == 'C' || nucleotideo == 'G') {
+                empilharPilha(nucleotideo, pilha);
+            } else {
+                printf("\n  *** O nucleotídeo '%c' é inválido, apenas [A], [T], [C] ou [G] são permitidos. ***\n", nucleotideo);
+            }
+        }
+    }
+    printf("\n  *** A sequência de nucleotídeos foi adicionada na pilha com sucesso! ***\n");
+}
+
+// --- Função para excluir o topo da pilha ----------------------------------------------------------------------------------------
+void excluirNucleotideoPilha(Pilha* pilha) {
+    if (pilha -> topo == NULL) {
+        printf("  *** A pilha está vazia. ***\n");
+        return;
+    }
+
+    char nucleotideoRemovido = desempilharPilha(pilha);
+    printf("\n  *** O nucleotídeo '%c' foi removido do topo da pilha. ***\n", nucleotideoRemovido);
+}
+
+// --- Função para excluir toda a sequencia da pilha -----------------------------------------------------------------------------
+void excluirSequenciaPilha(Pilha* pilha) {
+    while (pilha -> topo != NULL) {
+        desempilharPilha(pilha);
+    }
+    printf("  *** A sequência de nucleotídeos foi removida da pilha ***\n");
+}
+
+// Mostrar FIla e Pilha
+void imprimirFilaPilha(Fila* fila, Pilha* pilha) {
+    if (fila != NULL) {
+        noFila* ptrFila = fila->inicio;
+        if (ptrFila != NULL) {
+            printf("   A sequencia de nucleotídeos armazenada na fila é: ");
+            while (ptrFila != NULL) {
+                printf("%c ", ptrFila->genetica);
+                ptrFila = ptrFila->proximo;
+            }
+            printf("\n");
+        } else {
+            printf("   A fila está vazia, não há nenhum nucleotideo amarzenado nela.\n");
+        }
+    }
+
+    printf("|----------------------------------------------------------------------------------------------------|\n");
+
+    if (pilha != NULL) {
+        noPilha* ptrPilha = pilha->topo;
+        if (ptrPilha != NULL) {
+            printf("   A sequência de nucleotídeos armazenada na pilha é: ");
+            while (ptrPilha != NULL) {
+                printf("%c ", ptrPilha->genetica);
+                ptrPilha = ptrPilha->proximo;
+            }
+            printf("\n");
+        } else {
+            printf("   A pilha está vazia, não há nenhum nucleotideo amarzenado nela.\n");
+        }
+    } 
+    printf("|----------------------------------------------------------------------------------------------------|\n");
+}
+
+// --- Pressionar para voltar ao menu -------------------------------------------------------------------------------------------
+void continuar() {
+    printf("\n  Pressione Enter para voltar ao menu! ");
+    fflush(stdin);
+    getchar();
+    system("cls");
+}
+
+
+void excluirFilaEPilha(Fila* fila, Pilha* pilha) {
+    if (fila -> inicio != NULL || pilha -> topo != NULL) {
+        char resposta;
+        printf("  Uma fila e/ou pilha já foi criada. Você deseja excluí-las? (S/N): ");
+        scanf(" %c", &resposta);
+
+        switch (toupper(resposta)) {
+            case 'S':
+                while (fila -> inicio != NULL) {
+                    desenfileiraFila(fila);
+                }
+                while (pilha -> topo != NULL) {
+                    desempilharPilha(pilha);
+                }
+                printf("\n  *** A fila e a pilha existentes foram excluídas com sucesso! Por favor selecione a opção 1 no menu novamente ***\n");
+                break;
+            case 'N':
+                printf("\n  *** A exclusão da fila e da pilha foi cancelada! ***\n");
+                break;
+            default:
+                // Limpar o buffer de entrada
+                while (getchar() != '\n') {}
+                printf("\n  *** Opção inválida! A exclusão da fila e da pilha foi cancelada! ***\n");
+                break;
+        }
+    }
+}
+
+
+// -------------------------------------------------------------------------------------------------------------------------------
+int main() {
+    setlocale(LC_ALL, "Portuguese");
+    int escolha = 0;
+    Fila fila;
+    Pilha pilha;
+    inicializarFila(&fila);
+    inicializarPilha(&pilha);
+    do {
+        printf("|----------------------------------------------------------------------------------------------------|\n");
+        printf("  Menu de Sequência de Nucleotídeos:\n");
+        printf("      1 - Inserir Sequência de Nucleotídeos na Fila\n");
+        printf("      2 - Convertendo Sequência de Nucleotídeos Para a Pilha\n");
+        printf("      3 - Mostrar Fila e Pilha\n");
+        printf("      4 - Incluir Novo Nucleotídeo na Fila\n");
+        printf("      5 - Remover Primeiro Nucleotídeo da Fila\n");
+        printf("      6 - Mostrar Fila\n");
+        printf("      7 - Excluir Toda a Sequência de Nucleotídeos da Lista\n");
+        printf("      8 - Mostrar Pilha\n");
+        printf("      9 - Incluir Novo Nucleotídeo na Pilha\n");
+        printf("     10 - Remover Nucleotídeo do Topo da Sequencia da Pilha\n");
+        printf("     11 - Excluir Toda a Sequência de Nucleotídeos da Pilha\n");
+        printf("      0 - Sair\n");
+        printf("|----------------------------------------------------------------------------------------------------|\n");
+        printf("  Escolha uma opção: ");
+        scanf("%d", &escolha);
+
+        switch (escolha) {
+            case 1:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                               Inserindo Sequência de Nucleotídeos na Fila                            \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                if (fila.inicio != NULL || pilha.topo != NULL) {
+                    excluirFilaEPilha(&fila, &pilha);  
+                    continuar();
+                } else{
+                    lerSequencia(&fila);
+                }
+                break;
+
+            case 2:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                           Convertendo Sequência de Nucleotídeos Para a Pilha                         \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+				lerSequenciaPilha(&fila, &pilha);
+                continuar();
+                break;
+
+            case 3:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                                         Mostrando Fila e Pilha                                       \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                imprimirFilaPilha(&fila, &pilha);
+                continuar();
+                break;
+
+            case 4:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                                   Incluindo Novo Nucleotídeo na Fila                                 \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                incluirNucleotideo(&fila);
+                continuar();
+                break;
+            
+            case 5:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                                 Removendo Primeiro Nucleotídeo da Fila                               \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                excluirPrimeiroNucleotideoFila(&fila);
+                continuar();
+                break;
+            
+            case 6:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                                           Mostrando Fila                                            \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                imprimirFila(&fila);
+                continuar();
+                break;
+            
+            case 7:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                           Excluindo Toda a Sequência de Nucleotídeos da Lista                        \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                excluirSequenciaLista(&fila);
+                continuar();
+                break;
+            
+            case 8:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                                             Mostrando Pilha                                          \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                imprimirPilha(&pilha);
+                continuar();
+                break;
+            
+            case 9:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                                  Incluindo Novo Nucleotídeo na Pilha                                \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                incluirNucleotideoPilha(&pilha);
+                continuar();
+                break;
+            
+            case 10:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                               Excluindo Nucleotídeo da Sequência da Pilha                            \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                excluirNucleotideoPilha(&pilha);
+                continuar();
+                break;
+            
+            case 11:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                          Excluindo Toda a Sequência de Nucleotídeos da Pilha                         \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                excluirSequenciaPilha(&pilha);
+                continuar();
+                break;
+
+            case 0:
+                system("cls");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("                                       Encerrando Algoritmo ...                                       \n");
+                printf("|----------------------------------------------------------------------------------------------------|\n");
+                printf("   Acadêmico: Pedro da Silva Tezolin   |   Curso: Bacharelado em Engenharia de Software\n");
+                printf("   Disciplina: Estrutura de Dados I    |   Valor da atividade: 3,00\n");
+                break;
+            
+            default:
+                system("cls");
+                printf("  O usuário escolheu uma opção inválida. Por favor, informe corretamente!\n\n");
+                break;
+        }
+    } while (escolha != 0);
+    return 0;
+}
